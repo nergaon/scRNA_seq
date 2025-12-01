@@ -1,0 +1,1 @@
+python /gpfs0/tals/projects/Analysis/scRNA_seq/scripts/add_tag.py /gpfs0/tals/projects/Analysis/scRNA_seq/GSE270917/SRR29608249.sorted.bam /gpfs0/tals/projects/Analysis/scRNA_seq/GSE270917/SRR29608249.tagged.bam
