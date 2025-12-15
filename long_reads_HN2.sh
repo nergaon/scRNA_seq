@@ -12,59 +12,41 @@ cd $bam_folder
 #This creates a FASTQ with quality "I".
 
 #add the tag to the read names
-awk '
-  /^>/ {
-    split($0,a,";");
-    cb=""; xm="";
-    for(i in a){
-      if(a[i] ~ /CB=/){ split(a[i],b,"="); cb=b[2] }
-      if(a[i] ~ /XM=/){ split(a[i],b,"="); xm=b[2] }
-    }
+#awk '
+#  /^>/ {
+#    split($0,a,";");
+#    cb=""; xm="";
+#    for(i in a){
+#      if(a[i] ~ /CB=/){ split(a[i],b,"="); cb=b[2] }
+#      if(a[i] ~ /XM=/){ split(a[i],b,"="); xm=b[2] }
+#    }
     # extract molecule/0 (remove ">")
-    readname = substr($1,2)
+#    readname = substr($1,2)
     # build compact QNAME (no spaces)
-    newname = readname "_CB:Z:" cb "_XM:Z:" xm
+#    newname = readname "_CB:Z:" cb "_XM:Z:" xm
     # get sequence and build fake quality
-    getline seq
-    qual = gensub(/./,"I","g",seq)
-    print "@" newname "\n" seq "\n+\n" qual
-    next
-  }
-' dedup_reads.fastq > reads_tagged.fastq                 
+#    getline seq
+#    qual = gensub(/./,"I","g",seq)
+#    print "@" newname "\n" seq "\n+\n" qual
+#    next
+#  }
+#' dedup_reads.fastq > reads_tagged.fastq                 
 
 #Align to human genome                                 
-minimap2 -t 20 -ax splice:hq -uf --secondary=no \
-  /gpfs0/tals/projects/data/Genomes/hg38/grch38/Homo_sapiens.GRCh38.dna.primary_assembly.fa \
-  reads_tagged.fastq \
-  | samtools view -bS -o mapped.bam
-
-#-ax splice:hq → spliced alignment for HiFi CCS
-#-uf → cDNA
-#--secondary=no → avoid secondary alignments
-#Barcodes remain in the read name → samtools keeps them
+minimap2 -t 70 -ax splice:hq -uf --secondary=no /gpfs0/tals/projects/data/Genomes/hg38/grch38/GRCh38.primary_assembly.genome.fa reads_tagged.fastq | samtools view -bS -o mapped.bam
+#Barcodes remain in the read name
 
 #Convert read-name tags into BAM tags
-samtools view -h mapped.bam | \
-awk '
-  BEGIN { FS=OFS="\t" }
-  # Keep header lines unchanged
-  /^@/ { print; next }
-  {
-    cb=""; xm="";  # reset for each read
-    # scan existing tags
-    for(i=12;i<=NF;i++){
-      if($i ~ /^CB:Z:/) cb=$i;
-      if($i ~ /^XM:Z:/) xm=$i;
-    }
-    # append tags only if they exist
-    if(cb != "") $0 = $0 OFS cb;
-    if(xm != "") $0 = $0 OFS xm;
-    print;
-  }
-' | samtools view -b -o mapped.tagged.bam
+cd /gpfs0/tals/projects/Analysis/scRNA_seq/scripts
+python /gpfs0/tals/projects/Analysis/scRNA_seq/scripts/add_tag_long_reads.py
 
+cd $bam_folder
 samtools sort -o mapped.tagged.sorted.bam mapped.tagged.bam
 samtools index mapped.tagged.sorted.bam
+samtools flagstat mapped.tagged.bam > flagStat.txt
+
+#filter bam by CB tag to get one cell bam
+qsub -cwd -V -q tals.q filter_bam_by_CB.sh ../PacBio_LongReads/mapped.tagged.sorted.bam AAAGGGCACACGTAAA AAAGGGCACACGTAAA
 
 #wget options
 #-r — recursive download
@@ -74,5 +56,7 @@ samtools index mapped.tagged.sorted.bam
 #-R "index.html*" — reject index.html files (i.e. don’t download directory listings)
 
 #minimap2
-#-ax splice – splice-aware for RNA-seq
-#-t 8 – threads
+#-ax splice:hq → spliced alignment for HiFi CCS
+#-uf → cDNA
+#--secondary=no → avoid secondary alignments
+#-t 20 CPU threads to use = 20

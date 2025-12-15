@@ -44,15 +44,15 @@ rm SRR29608249.sam
 
 #Add Cell Barcode + UMI tags to BAM
 cd /gpfs0/tals/projects/Analysis/scRNA_seq/scripts
-qsub -cwd -V -q tals.q runAddTag.sh
+python /gpfs0/tals/projects/Analysis/scRNA_seq/scripts/add_tag.py /gpfs0/tals/projects/Analysis/scRNA_seq/GSE270917/SRR29608249.sorted.bam /gpfs0/tals/projects/Analysis/scRNA_seq/GSE270917/SRR29608249.tagged.bam
 
 cd $WORKDIR
 #Sorting, indexing, QC
 samtools index SRR29608249.tagged.bam
 samtools flagstat SRR29608249.tagged.bam > flagStat.txt
 
-#count how many cells (unique barcodes) there are in the bam file
-qsub -cwd -V -q tals.q countBarcode.sh 
+#get reads from only 1 cell
+qsub -cwd -V -q tals.q filter_bam_by_CB.sh ../GSE270917/SRR29608249.tagged.bam CAGCATATCTGAGTGT CAGCATATCTGAGTGT.bam
 
 # ====== Set permissions cleanly ======
 chmod 550 SRR29608249.tagged.bam

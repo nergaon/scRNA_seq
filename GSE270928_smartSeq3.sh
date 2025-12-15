@@ -3,7 +3,7 @@
 bam_folder="/gpfs0/tals/projects/Analysis/scRNA_seq/GSE270928"
 
 cd $bam_folder
-#download fasta and split to the paired reads. smart seq 2
+#download fasta and split to the paired reads
 /gpfs0/tals/projects/software/anaconda3/envs/SRA/bin/fastq-dump.3.0.0 --split-files SRR29628122
 #human genome!!!!!!!!!!!!!!!
 #--mm - Use memory-mapped I/O to load the index, rather than typical file I/O. 
