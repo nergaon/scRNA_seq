@@ -36,3 +36,4 @@ mv SRR29608249_2.fastq SRR29608249_S1_L001_R2_001.fastq
   --localcores=16 \
   --localmem=64
 
+#bam file: /gpfs0/tals/projects/Analysis/scRNA_seq/GSE270917/SRR29608249/outs/possorted_genome_bam.bam

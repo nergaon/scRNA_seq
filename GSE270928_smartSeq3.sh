@@ -22,3 +22,4 @@ chmod 550 SRR29628122.sort.bam.bai
 samtools flagstat SRR29628122.sort.bam > flagStat.txt
 echo "SRR29628122.sort.bam" >> flagStat.txt"
 
+#bam file: /gpfs0/tals/projects/Analysis/scRNA_seq/GSE270928/oneCell/SRR29628122.sort.bam 
